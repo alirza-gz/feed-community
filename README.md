@@ -22,9 +22,11 @@ npm run build
 src/
   app/                      App Router pages, route boundaries, and API routes
     api/v1/community/        Community HTTP API
+    dashboard/               Question and Answer Management Dashboard
     questions/               Feed, detail, and create-question routes
   features/
     questions/               Question UI, query hooks, schema, API client, and types
+    dashboard/components     Question and Answer Management Dashboard
     answers/                 Answer UI, mutations, schema, API client, and types
   shared/                    Reusable UI, hooks, formatting helpers, and UI store
   server/                    Storage abstraction and HTTP helpers
