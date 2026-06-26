@@ -8,11 +8,13 @@ import {
 } from "@tanstack/react-query";
 import {
   createQuestion,
+  fetchMyQuestions,
   fetchQuestion,
   fetchQuestions,
   fetchTags,
+  updateQuestion,
 } from "./api";
-import type { QuestionListParams } from "./types";
+import type { Question, QuestionListParams, UpdateQuestionInput } from "./types";
 
 /**
  * Centralised, hierarchical query keys. Keeping them in one factory avoids
@@ -25,6 +27,7 @@ export const questionKeys = {
     [...questionKeys.lists(), filters] as const,
   details: () => [...questionKeys.all, "detail"] as const,
   detail: (id: string) => [...questionKeys.details(), id] as const,
+  mine: () => [...questionKeys.all, "mine"] as const,
   tags: () => [...questionKeys.all, "tags"] as const,
 };
 
@@ -48,6 +51,14 @@ export function useQuestion(id: string) {
   });
 }
 
+/** Questions authored by the current (demo) user — powers the dashboard. */
+export function useMyQuestions() {
+  return useQuery({
+    queryKey: questionKeys.mine(),
+    queryFn: fetchMyQuestions,
+  });
+}
+
 export function useTags() {
   return useQuery({
     queryKey: questionKeys.tags(),
@@ -61,8 +72,26 @@ export function useCreateQuestion() {
   return useMutation({
     mutationFn: createQuestion,
     onSuccess: () => {
-      // New question affects every feed list → invalidate them all.
+      // New question affects every feed list and the user's dashboard.
       queryClient.invalidateQueries({ queryKey: questionKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: questionKeys.mine() });
+    },
+  });
+}
+
+export function useUpdateQuestion(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateQuestionInput) => updateQuestion(id, input),
+    onSuccess: (updated) => {
+      // Seed the detail cache with the fresh server copy, then invalidate so
+      // the feed lists and any related-question views pick up the edit.
+      queryClient.setQueryData<Question>(questionKeys.detail(id), (prev) =>
+        prev ? { ...prev, ...updated } : prev,
+      );
+      queryClient.invalidateQueries({ queryKey: questionKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: questionKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: questionKeys.mine() });
     },
   });
 }

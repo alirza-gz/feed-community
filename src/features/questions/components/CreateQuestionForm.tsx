@@ -7,7 +7,8 @@ import { Button } from "@/shared/components/ui/Button";
 import { Input, Textarea } from "@/shared/components/ui/Input";
 import { useUiStore } from "@/shared/store/ui-store";
 import { createQuestionSchema, type CreateQuestionValues } from "../schema";
-import { useCreateQuestion } from "../queries";
+import { useCreateQuestion, useUpdateQuestion } from "../queries";
+import type { Question } from "../types";
 import { TagsInput } from "./TagsInput";
 
 function FieldError({ message }: { message?: string }) {
@@ -16,13 +17,19 @@ function FieldError({ message }: { message?: string }) {
 }
 
 /**
- * Create-question form. Validation is driven by the SAME zod schema used by
- * the API route, so client and server rules can never diverge.
+ * Question form, used for both creating and editing. Validation is driven by
+ * the SAME zod schema used by the API route, so client and server rules can
+ * never diverge. Pass `question` to switch into edit mode (prefilled fields,
+ * PATCH on submit); omit it to create a new question.
  */
-export function CreateQuestionForm() {
+export function CreateQuestionForm({ question }: { question?: Question }) {
   const router = useRouter();
   const pushToast = useUiStore((s) => s.pushToast);
-  const { mutateAsync, isPending } = useCreateQuestion();
+  const isEdit = Boolean(question);
+
+  const createMutation = useCreateQuestion();
+  const updateMutation = useUpdateQuestion(question?.id ?? "");
+  const { mutateAsync, isPending } = isEdit ? updateMutation : createMutation;
 
   const {
     register,
@@ -31,7 +38,11 @@ export function CreateQuestionForm() {
     formState: { errors },
   } = useForm<CreateQuestionValues>({
     resolver: zodResolver(createQuestionSchema),
-    defaultValues: { title: "", description: "", tags: [] },
+    defaultValues: {
+      title: question?.title ?? "",
+      description: question?.description ?? "",
+      tags: question?.tags ?? [],
+    },
     mode: "onBlur",
   });
 
@@ -40,11 +51,14 @@ export function CreateQuestionForm() {
 
   async function onSubmit(values: CreateQuestionValues) {
     try {
-      const created = await mutateAsync(values);
-      pushToast("Your question was posted");
-      router.push(`/questions/${created.id}`);
+      const saved = await mutateAsync(values);
+      pushToast(isEdit ? "Your question was updated" : "Your question was posted");
+      router.push(`/questions/${question?.id ?? saved.id}`);
     } catch {
-      pushToast("Failed to post question", "error");
+      pushToast(
+        isEdit ? "Failed to update question" : "Failed to post question",
+        "error",
+      );
     }
   }
 
@@ -116,7 +130,13 @@ export function CreateQuestionForm() {
           Cancel
         </Button>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Posting…" : "Post question"}
+          {isEdit
+            ? isPending
+              ? "Saving…"
+              : "Save changes"
+            : isPending
+              ? "Posting…"
+              : "Post question"}
         </Button>
       </div>
     </form>

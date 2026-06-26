@@ -49,7 +49,11 @@ export function AnswerSection({ questionId }: { questionId: string }) {
       {!isPending && !isError && answers && answers.length > 0 && (
         <ul className="space-y-3">
           {answers.map((answer) => (
-            <AnswerItem key={answer.id} answer={answer} />
+            <AnswerItem
+              key={answer.id}
+              answer={answer}
+              questionId={questionId}
+            />
           ))}
         </ul>
       )}

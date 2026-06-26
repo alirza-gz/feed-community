@@ -5,6 +5,7 @@ import type {
   QuestionDetail,
   QuestionListParams,
   QuestionPage,
+  UpdateQuestionInput,
 } from "./types";
 
 /** Pure API functions for the Questions feature — no React, easy to test. */
@@ -34,6 +35,20 @@ export function createQuestion(input: CreateQuestionInput): Promise<Question> {
     method: "POST",
     body: JSON.stringify(input),
   });
+}
+
+export function updateQuestion(
+  id: string,
+  input: UpdateQuestionInput,
+): Promise<Question> {
+  return apiFetch<Question>(`/questions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function fetchMyQuestions(): Promise<Question[]> {
+  return apiFetch<Question[]>("/questions/me");
 }
 
 export function fetchTags(): Promise<string[]> {

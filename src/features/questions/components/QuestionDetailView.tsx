@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge } from "@/shared/components/ui/Badge";
 import { Card } from "@/shared/components/ui/Card";
 import { colorFromString, formatRelativeTime } from "@/shared/lib/format";
@@ -7,10 +8,18 @@ import type { Question } from "../types";
 export function QuestionDetailView({ question }: { question: Question }) {
   return (
     <Card className="p-6">
-      <div className="flex flex-wrap gap-1.5">
-        {question.tags.map((tag) => (
-          <Badge key={tag}>{tag}</Badge>
-        ))}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="flex flex-wrap gap-1.5">
+          {question.tags.map((tag) => (
+            <Badge key={tag}>{tag}</Badge>
+          ))}
+        </div>
+        <Link
+          href={`/questions/${question.id}/edit`}
+          className="shrink-0 text-sm font-medium text-slate-500 hover:text-brand-600 dark:text-slate-400"
+        >
+          Edit
+        </Link>
       </div>
 
       <h1 className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-100">
