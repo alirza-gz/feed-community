@@ -112,7 +112,6 @@ The project is organised by feature, rather than by file type. A new product are
 
 - Replace the in-memory store with a database-backed repository, object storage for upload bytes, and durable attachment records.
 - Add authentication and authorization so edit, delete, and "my" endpoints enforce ownership rather than relying on the demo user.
-- Expose the existing edit, delete, upload, and attachment APIs through complete UI flows.
 - Add unit tests for validation and repositories, integration tests for API route error cases, and browser tests for filter URL state, infinite scrolling, and optimistic answer rollback.
 - Add request logging, error monitoring, rate limiting, and upload virus/type validation for a production environment.
 - Persist question and answer drafts locally so users can recover interrupted work.
